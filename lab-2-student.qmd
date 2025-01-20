@@ -1,10 +1,18 @@
 ---
 title: "Lab 2: Exploring Rodents with `ggplot2`"
 author: "Quinton Wong"
-format: html
+format: 
+  html:
+    code-fold: true
+    theme: lux
 editor: source
 embed-resources: true
 code-tools: true
+execute: 
+  echo: true
+  error: true
+  warning: false
+  message: false
 ---
 
 # Part 1: GitHub Workflow
@@ -105,13 +113,19 @@ represent:
 ```{r}
 #| label: load-data
 
+surveys <- read_csv(here::here("data", "surveys.csv"))
+
 ```
 
 **2. What are the dimensions (# of rows and columns) of these data?**
 
+This data has 30,463 rows and 15 columns. 
+
 <!-- You can either write code here or in the code chunk for #1, but I **must** see the code you used to address this question!  -->
 
 **3. What are the data types of the variables in this dataset?**
+
+This dataset has characters (species_id, sex, day_of_week, plot_type, genus, species, taxa), doubles (record_id, month, day, year, plot_id, hindfoot_length, weight), and date.
 
 <!-- You can either write code here or in the code chunk for #1, but I **must** see the code you used to address this question!  -->
 
@@ -142,6 +156,21 @@ the $x$-axis) and `hindfoot_length` (on the $y$-axis).**
 ```{r}
 #| label: scatterplot
 
+ggplot(data = surveys,
+       mapping = aes(
+         x = weight,
+         y= hindfoot_length)
+) +
+  geom_point(alpha = 0.25) +
+  facet_wrap(~species) +
+  labs(x = "Weight",
+       y="",
+       title = "Relationship Between Weight & Hindfoot Length for Rodent Species",
+       subtitle = "Hindfoot Length"
+  ) +
+  theme_bw()
+  
+
 ```
 
 We can see there are **a lot** of points plotted on top of each other. Let's try and modify this plot to extract more information from it.
@@ -167,11 +196,29 @@ It takes a larger cognitive load to read text that is rotated. It is common prac
 
 <!-- Continue to modify the plot you originally created for question 4! -->
 
-## Boxplots
+## Ridge Plots
 
 ```{r}
-#| label: boxplot
+#| label: ridge-plot
 
+library(ggridges)
+
+ggplot(data = surveys,
+       mapping = aes(
+         x = weight,
+         y = species)
+) +
+  geom_density_ridges(alpha = 0.15) +
+  geom_jitter(width = 0.25, 
+              alpha = 0.15,
+              aes(color = species)) +
+  labs(
+    x = "Weight",
+    y = "Species",
+    color = "Species",
+    title = "Distribution of Weight within Rodent Species") +
+  theme_bw() 
+  
 
 ```
 
@@ -217,7 +264,25 @@ Some people (and journals) prefer for boxplots to be stacked with a specific ori
 **16. Now copy-paste your boxplot code you've been adding to above. Flip the orientation of your boxplots. If you created horizontally stacked boxplots, your boxplots should now be stacked vertically. If you had vertically stacked boxplots, you should now stack your boxplots horizontally!**
 
 ```{r}
-#| label: rotated-boxplot
+#| label: rotated-ridge-plot
+
+ggplot(data = surveys,
+       mapping = aes(
+         x = weight,
+         y = species)
+) +
+  geom_density_ridges(alpha = 0.15) +
+  geom_jitter(width = 0.25, 
+              alpha = 0.15,
+              aes(color = species)) +
+  labs(
+    x = "Weight",
+    y = "Species",
+    color = "Species",
+    title = "Distribution of Weight within Rodent Species") +
+  theme_bw() +
+  coord_flip() +
+  theme(axis.text.x = element_text(angle=45))
 
 ```
 
@@ -251,12 +316,14 @@ might want to look up the help documentation for `aov()`.
 ```{r}
 #| label: anova
 
-species_mod <- aov()
+species_mod <- aov(weight ~ species, data = surveys)
 
-summary(species_mod)
+#summary(species_mod)
 ```
 
 **18. Based on the results of the ANOVA F-test, draw a conclusion in context of the hypotheses. Make sure to cite appropriate output from above.**
+
+With an F-test statistic of 19,916 and an incredibly small p-value of less than 2*10^-16, we can say that we have a statistically significant p-value. Thus, we can reject the null hypothesis that the population mean weight for all fourteen rodent species is the same. Furthermore, we can say that we have strong evidence that at least one rodent species has a different population mean weight from the rest of the rodent species.
 
 
 # Lab 2 Submission
